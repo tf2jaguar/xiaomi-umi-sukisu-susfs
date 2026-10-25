@@ -73,11 +73,11 @@ mkdir -p "$CCACHE_DIR"
 # ==========================================
 if [ "$ENABLE_KSU" -eq 1 ]; then
     echo "==========================================="
-    echo " [*] Initializing KernelSU (ReSukiSU) Setup"
+    echo " [*] Initializing KernelSU (SukiSU Ultra) Setup"
     echo "==========================================="
-    echo "[*] Downloading and running ReSukiSU remote setup script..."
-    curl -LSs "https://raw.githubusercontent.com/ReSukiSU/ReSukiSU/main/kernel/setup.sh" | bash
-    echo "[+] KernelSU setup finished."
+    echo "[*] Downloading and running SukiSU Ultra remote setup script..."
+    curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash
+    echo "[+] SukiSU Ultra setup finished."
 fi
 
 # ==========================================
@@ -204,13 +204,15 @@ build_target() {
     echo "[*] Injecting Baseband-guard configuration..."
     scripts/config --file "${OUT_DIR}/.config" -e BBG
 
-    # 2. KernelSU configurations
+    # 2. KernelSU / SukiSU configurations
     if [ "$ENABLE_KSU" -eq 1 ]; then
-        echo "[*] Injecting KernelSU & SUSFS configurations..."
+        echo "[*] Injecting KernelSU (SukiSU) configurations..."
         scripts/config --file "${OUT_DIR}/.config" \
             -e KSU \
+            -e KSU_SUSFS \
             -e THREAD_INFO_IN_TASK \
-            -e KSU_SUSFS
+            -e KPROBES \
+            -e KPROBE_EVENTS
     fi
 
     # Droidspaces container support (always applied)
