@@ -247,6 +247,12 @@ build_target() {
         -e CONFIG_TMPFS_POSIX_ACL \
         -e CONFIG_IP_MULTIPLE_TABLES \
         -e CONFIG_IP6_NF_IPTABLES \
+        -e CONFIG_NF_NAT_IPV6 \
+        -e CONFIG_IP6_NF_NAT \
+        -e CONFIG_IP6_NF_TARGET_MASQUERADE \
+        -e CONFIG_NF_CONNTRACK_IPV6 \
+        -e CONFIG_FAIR_GROUP_SCHED \
+        -e CONFIG_CFS_BANDWIDTH \
         -d CONFIG_ANDROID_PARANOID_NETWORK
 
     # Droidspaces non-GKI kernel patches (committed in Droidspaces-patches/)
