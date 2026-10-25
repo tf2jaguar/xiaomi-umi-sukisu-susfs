@@ -247,13 +247,22 @@ build_target() {
         -e CONFIG_IP6_NF_IPTABLES \
         -d CONFIG_ANDROID_PARANOID_NETWORK
 
-    # Droidspaces non-GKI kernel patches (fetched at build time)
+    # Droidspaces non-GKI kernel patches (committed in Droidspaces-patches/)
     echo "[*] Applying Droidspaces non-GKI kernel patches..."
     cd "${KERNEL_DIR}"
-    wget -q "https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/main/Documentation/resources/kernel-patches/non-GKI/01.fix_kernel_panic_in_xt_qtaguid.patch" -O /tmp/ds_patch_01.patch || exit 1
-    wget -q "https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/main/Documentation/resources/kernel-patches/non-GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch" -O /tmp/ds_patch_02.patch || exit 1
-    patch -p1 --forward < /tmp/ds_patch_01.patch || { echo "[!] Droidspaces patch 01 (xt_qtaguid) failed"; exit 1; }
-    patch -p1 --forward < /tmp/ds_patch_02.patch || { echo "[!] Droidspaces patch 02 (cgroup prefix) failed"; exit 1; }
+    # Patch 01 (xt_qtaguid panic fix) only applies on trees that still ship the module
+    if [ -f "net/netfilter/xt_qtaguid.c" ]; then
+        patch -p1 --forward < "Droidspaces-patches/01.fix_kernel_panic_in_xt_qtaguid.patch" \
+            && echo "[OK] Droidspaces patch 01 applied" \
+            || echo "[!] WARN: Droidspaces patch 01 did not apply (continuing)"
+    else
+        echo "[*] Skipping Droidspaces patch 01 (net/netfilter/xt_qtaguid.c not in this tree)"
+    fi
+    # Patch 02 (cgroup file prefix) is required for container cgroup handling
+    patch -p1 --forward < "Droidspaces-patches/02.fix_restore_cgroup_file_prefix.patch" \
+        && echo "[OK] Droidspaces patch 02 applied" \
+        || echo "[!] WARN: Droidspaces patch 02 (cgroup prefix) failed (container cgroup limits may be reduced)"
+
 
     # 3. MIUI configurations
     if [ "$OS_TYPE" == "miui" ]; then
