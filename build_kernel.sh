@@ -213,6 +213,48 @@ build_target() {
             -e KSU_SUSFS
     fi
 
+    # Droidspaces container support (always applied)
+    echo "[*] Injecting Droidspaces container configurations..."
+    scripts/config --file "${OUT_DIR}/.config" \
+        -e CONFIG_SYSCTL \
+        -e CONFIG_SYSVIPC \
+        -e CONFIG_POSIX_MQUEUE \
+        -e CONFIG_NAMESPACES \
+        -e CONFIG_PID_NS \
+        -e CONFIG_IPC_NS \
+        -e CONFIG_UTS_NS \
+        -e CONFIG_NET_NS \
+        -e CONFIG_USER_NS \
+        -e CONFIG_DEVTMPFS \
+        -e CONFIG_DEVTMPFS_MOUNT \
+        -e CONFIG_CGROUP_DEVICE \
+        -e CONFIG_CGROUP_PIDS \
+        -e CONFIG_CFS_BANDWIDTH \
+        -e CONFIG_NETFILTER_XT_MATCH_ADDRTYPE \
+        -e CONFIG_NF_NAT \
+        -e CONFIG_NF_TABLES \
+        -e CONFIG_IP_SET \
+        -e CONFIG_IP_SET_HASH_IP \
+        -e CONFIG_IP_SET_HASH_NET \
+        -e CONFIG_NETFILTER_XT_SET \
+        -e CONFIG_NETFILTER_XT_TARGET_REJECT \
+        -e CONFIG_NETFILTER_XT_TARGET_LOG \
+        -e CONFIG_NETFILTER_XT_MATCH_RECENT \
+        -e CONFIG_MACVLAN \
+        -e CONFIG_TMPFS_XATTR \
+        -e CONFIG_TMPFS_POSIX_ACL \
+        -e CONFIG_IP_MULTIPLE_TABLES \
+        -e CONFIG_IP6_NF_IPTABLES \
+        -d CONFIG_ANDROID_PARANOID_NETWORK
+
+    # Droidspaces non-GKI kernel patches (fetched at build time)
+    echo "[*] Applying Droidspaces non-GKI kernel patches..."
+    cd "${KERNEL_DIR}"
+    wget -q "https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/main/Documentation/resources/kernel-patches/non-GKI/01.fix_kernel_panic_in_xt_qtaguid.patch" -O /tmp/ds_patch_01.patch || exit 1
+    wget -q "https://raw.githubusercontent.com/ravindu644/Droidspaces-OSS/main/Documentation/resources/kernel-patches/non-GKI/02.fix_restore%20cgroup%20file%20prefix%20handling%20.patch" -O /tmp/ds_patch_02.patch || exit 1
+    patch -p1 --forward < /tmp/ds_patch_01.patch || { echo "[!] Droidspaces patch 01 (xt_qtaguid) failed"; exit 1; }
+    patch -p1 --forward < /tmp/ds_patch_02.patch || { echo "[!] Droidspaces patch 02 (cgroup prefix) failed"; exit 1; }
+
     # 3. MIUI configurations
     if [ "$OS_TYPE" == "miui" ]; then
         echo "[*] Injecting MIUI specific configurations..."
